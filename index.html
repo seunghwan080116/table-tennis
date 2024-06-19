@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ping Pong Game with Score</title>
+<style>
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #f0f0f0;
+    }
+    #gameArea {
+        position: relative;
+        width: 300px;
+        height: 200px;
+        background-color: #ffffff;
+        border: 2px solid #333333;
+    }
+    #paddle {
+        position: absolute;
+        bottom: 10px;
+        left: 100px;
+        width: 60px;
+        height: 10px;
+        background-color: #333333;
+    }
+    #ball {
+        position: absolute;
+        top: 100px;
+        left: 140px;
+        width: 10px;
+        height: 10px;
+        background-color: #FF5733;
+        border-radius: 50%;
+    }
+    #score {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        font-size: 20px;
+    }
+    #message {
+        display: none;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 24px;
+        font-weight: bold;
+        color: green;
+    }
+</style>
+</head>
+<body>
+
+<div id="gameArea">
+    <div id="paddle"></div>
+    <div id="ball"></div>
+    <div id="score">User: 0 AI: 0</div>
+    <div id="message">축하합니다!</div>
+</div>
+
+<script>
+    const paddle = document.getElementById('paddle');
+    const ball = document.getElementById('ball');
+    const gameArea = document.getElementById('gameArea');
+    const scoreDisplay = document.getElementById('score');
+    const messageDisplay = document.getElementById('message');
+    const gameAreaRect = gameArea.getBoundingClientRect();
+
+    let ballX = 140; // initial position
+    let ballY = 100; // initial position
+    let ballSpeedX = 3; // initial speed
+    let ballSpeedY = 3; // initial speed
+    const paddleWidth = 60;
+    const paddleHeight = 10;
+    const ballRadius = 5;
+    let userScore = 0;
+    let aiScore = 0;
+
+    // Initialize ball position
+    ball.style.left = ballX + 'px';
+    ball.style.top = ballY + 'px';
+
+    function updateGame() {
+        // update ball position
+        ballX += ballSpeedX;
+        ballY += ballSpeedY;
+
+        // check collision with walls
+        if (ballX + ballRadius >= gameAreaRect.right || ballX - ballRadius <= gameAreaRect.left) {
+            ballSpeedX = -ballSpeedX;
+        }
+        if (ballY - ballRadius <= gameAreaRect.top) {
+            ballSpeedY = -ballSpeedY;
+        }
+        if (ballY + ballRadius >= gameAreaRect.bottom) {
+            // game over logic
+            if (userScore === 11) {
+                showCongratulations();
+            } else if (aiScore === 11) {
+                showGameOver();
+            } else {
+                resetGame();
+            }
+        }
+
+        // check collision with paddle (user)
+        if (ballX >= paddle.offsetLeft && ballX <= paddle.offsetLeft + paddleWidth &&
+            ballY + ballRadius >= gameAreaRect.bottom - paddleHeight) {
+            ballSpeedY = -ballSpeedY;
+            increaseUserScore();
+        }
+
+        // check collision with paddle (AI)
+        // for now, AI paddle doesn't move in this example
+
+        // update ball position on the screen
+        ball.style.left = ballX + 'px';
+        ball.style.top = ballY + 'px';
+
+        requestAnimationFrame(updateGame);
+    }
+
+    function resetGame() {
+        ballX = 140;
+        ballY = 100;
+        ballSpeedX = 3;
+        ballSpeedY = 3;
+        updateScoreDisplay();
+    }
+
+    function increaseUserScore() {
+        userScore++;
+        updateScoreDisplay();
+    }
+
+    function updateScoreDisplay() {
+        scoreDisplay.textContent = `User: ${userScore} AI: ${aiScore}`;
+    }
+
+    function showCongratulations() {
+        messageDisplay.style.display = 'block';
+        messageDisplay.textContent = '축하합니다!';
+    }
+
+    function showGameOver() {
+        messageDisplay.style.display = 'block';
+        messageDisplay.textContent = '게임 종료. AI가 이겼습니다.';
+    }
+
+    // move paddle with mouse
+    gameArea.addEventListener('mousemove', function(event) {
+        let mouseX = event.clientX - gameAreaRect.left;
+        let paddleX = mouseX - paddleWidth / 2;
+
+        if (paddleX < 0) {
+            paddleX = 0;
+        }
+        if (paddleX > gameAreaRect.width - paddleWidth) {
+            paddleX = gameAreaRect.width - paddleWidth;
+        }
+
+        paddle.style.left = paddleX + 'px';
+    });
+
+    // Start the game loop
+    updateGame();
+</script>
+
+</body>
+</html>
